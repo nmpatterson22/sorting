@@ -11,6 +11,7 @@ if cmp(a, b) returns  0, then a == b.
 '''
 
 import random
+import copy
 
 def cmp_standard(a, b):
     '''
@@ -67,9 +68,11 @@ def _merged(xs, ys, cmp=cmp_standard):
     This is a signal to users of a library that these functions are for "internal use only",
     and not part of the "public interface".
 
-    This _merged function could be implemented as a local function within the merge_sorted scope rather than a global function.
+    This _merged function could be implemented as a local function within the merge_sorted scope
+    rather than a global function.
     The downside of this is that the function can then not be tested on its own.
-    Typically, you should only implement a function as a local function if it cannot function on its own
+    Typically, you should only implement a function as a local function if it cannot
+    function on its own
     (like the go functions from binary search).
     If it's possible to make a function stand-alone,
     then you probably should do that and write test cases for the stand-alone function.
@@ -77,6 +80,32 @@ def _merged(xs, ys, cmp=cmp_standard):
     >>> _merged([1, 3, 5], [2, 4, 6])
     [1, 2, 3, 4, 5, 6]
     '''
+    # initialize new stack
+    new = []
+    i = 0
+    j = 0
+    # evaluate whether these are sorted using cmp function
+    # set conditions for appending based upon length and value
+    while i < len(xs) and j < len(ys):
+        if cmp(xs[i], ys[j]) == 1:
+            new.append(ys[j])
+            j += 1
+        elif cmp(xs[i], ys[j]) == 0:
+            new.append(xs[i])
+            new.append(ys[j])
+            i += 1
+            j += 1
+        elif cmp(xs[i], ys[j]) == -1:
+            new.append(xs[i])
+            i += 1
+    while i < len(xs):
+        new.append(xs[i])
+        i += 1
+
+    while j < len(ys):
+        new.append(ys[j])
+        j += 1
+    return new
 
 
 def merge_sorted(xs, cmp=cmp_standard):
@@ -95,7 +124,17 @@ def merge_sorted(xs, cmp=cmp_standard):
     You should return a sorted version of the input list xs.
     You should not modify the input list xs in any way.
     '''
-
+    # if xs has 1 element = sort --> return xs (renamed ms)
+    ms = xs
+    if len(ms) == 1:
+        return ms
+    elif len(ms) == 0:
+        return ms
+    # now we divide list into two halves, left & right
+    else:
+        right = merge_sorted(ms[:len(ms) // 2], cmp)
+        left = merge_sorted(ms[len(ms) // 2:], cmp)
+        return _merged(left, right, cmp) 
 
 def quick_sorted(xs, cmp=cmp_standard):
     '''
@@ -121,7 +160,29 @@ def quick_sorted(xs, cmp=cmp_standard):
     You should not modify the input list xs in any way.
     '''
 
-
+    # intial conditions to get copy of xs
+    qss = copy.deepcopy(xs)
+    if len(qss) <= 1:
+        return qss
+    else:
+    # creating pivot element and passing through random element
+        pivot = random.choice(qss)
+    # empty stacks created
+        little = []
+        big = []
+        equal = []
+        for x in qss:
+            if x < pivot:
+                little.append(x)
+            elif x > pivot:
+                big.append(x)
+            else:
+                equal.append(x)
+        if cmp == cmp_reverse:
+            return quick_sorted(big, cmp) + equal + quick_sorted(little, cmp)
+        if cmp == cmp_standard:
+            return quick_sorted(little, cmp) + equal + quick_sorted(big, cmp)    
+    
 def quick_sort(xs, cmp=cmp_standard):
     '''
     EXTRA CREDIT:
